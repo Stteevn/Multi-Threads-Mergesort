@@ -8,7 +8,9 @@
 #define MULTI_THREAD_NUM 16
 // #define SINGLE_THREAD
 #define MULTI_THREAD
+#ifndef DEBUG
 #define DEBUG
+#endif
 
 int A[maxn];
 int temp[maxn];
@@ -65,25 +67,19 @@ void* my_merge_sort(void *node) {
 #endif
 	
 #ifdef MULTI_THREAD
-	if((((thread_num + 1) << 1) > MULTI_THREAD_NUM)) {
+	if ((((thread_num + 1) << 1) > MULTI_THREAD_NUM)) {
 		my_merge_sort((void *)&left);
         my_merge_sort((void *)&right);
     } else {
         pthread_t tid1, tid2;
-        if(pthread_create(&tid1, NULL, my_merge_sort, ((void*)(&left))) != 0) {
+        if (pthread_create(&tid1, NULL, my_merge_sort, ((void*)(&left))) != 0) {
             fprintf(stderr, "thread create error\n");
             perror("");
-		}else thread_num++;    
+		} else thread_num++;    
 		if(pthread_create(&tid2, NULL, my_merge_sort, ((void*)(&right))) != 0) {
             fprintf(stderr, "thread create error\n");
 			perror("");
-<<<<<<< HEAD
-		}else thread_num++;
-=======
-		}else {
-			thread_num++;
-		}
->>>>>>> c631bdc828f6e0e39def4dfb4dbbdad720d8c146
+		} else thread_num++;
 		pthread_join(tid1, NULL);
 	    pthread_join(tid2, NULL);
     }

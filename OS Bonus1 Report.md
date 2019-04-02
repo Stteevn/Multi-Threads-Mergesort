@@ -4,7 +4,6 @@
 
 ### Implement
 
-I would define `THREAD_NUM` to limit the maximum threads the program can create. 
+We would define `MULTI_THREAD_NUM` to limit the maximum threads the program can create. 
 
-I would define `THREAD` 
 
