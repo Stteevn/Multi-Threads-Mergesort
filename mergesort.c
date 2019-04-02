@@ -82,7 +82,6 @@ void* my_merge_sort(void *node) {
 		if(pthread_create(&tid2, NULL, my_merge_sort, ((void*)(&right))) != 0) {
             fprintf(stderr, "thread create error\n");
 			perror("");
-            exit(-1);
 		}else {
 			thread_num++;
 		}
