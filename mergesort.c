@@ -5,13 +5,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 #define maxn 10000010
-#define THREAD_NUM 16
-// #define NO_THREAD
-#define THREAD
+#define MULTI_THREAD_NUM 8
+#define SINGLE_THREAD
+// #define MULTI_THREAD
 #define DEBUG
 
 int A[maxn];
 int temp[maxn];
+int B[maxn];
 int n;
 
 int thread_num = 0;
@@ -30,17 +31,6 @@ long get_current_time() {
 
 void merge(int l, int r) {
 	int mid = (l + r) >> 1;
-	//int *first = (int *)malloc(sizeof(int) * (unsigned)(mid - l + 1));
-	//int *second = (int *)malloc(sizeof(int) * (unsigned)(r - mid + 1));
-/*	
-	if(first == NULL || second == NULL) {
-		fprintf(stderr, "malloc error\n");
-		exit(-1);
-	}
-*/	
-	//for(int i = l; i < mid; i++) first[i - l] = A[i];
-	//for(int i = mid; i < r; i++) second[i - mid] = A[i];
-	//for(int i = l; i < r; i++) temp[i] = A[i];
     memcpy(temp + l, A + l, sizeof(int) * (r - l));
     int i = l, j = mid, k = l;
 	while(i < mid && j < r) {
@@ -49,9 +39,6 @@ void merge(int l, int r) {
 	}
 	while(i < mid) A[k++] = temp[i++];
 	while(j < r) A[k++] = temp[j++];
-
-	//free(first);
-	//free(second);
 }
 
 void* my_merge_sort(void *node) {
@@ -75,27 +62,30 @@ void* my_merge_sort(void *node) {
 	right.l = mid;
 	right.r = r;
 	
-#ifdef NO_THREAD
+#ifdef SINGLE_THREAD
 	my_merge_sort((void *)&left);
 	my_merge_sort((void *)&right);
 #endif
 	
-#ifdef THREAD
-	if((thread_num * 4 > THREAD_NUM)) {
+#ifdef MULTI_THREAD
+	if(((thread_num + 1) << 1 > MULTI_THREAD_NUM)) {
 		my_merge_sort((void *)&left);
         my_merge_sort((void *)&right);
     } else {
-		thread_num = n / (r - l) * 2;
         pthread_t tid1, tid2;
         if(pthread_create(&tid1, NULL, my_merge_sort, ((void*)(&left))) != 0) {
             fprintf(stderr, "thread create error\n");
             perror("");
-        }         
+		}else {
+			thread_num++;
+		}         
 		if(pthread_create(&tid2, NULL, my_merge_sort, ((void*)(&right))) != 0) {
             fprintf(stderr, "thread create error\n");
 			perror("");
             exit(-1);
-        }	
+		}else {
+			thread_num++;
+		}
 		pthread_join(tid1, NULL);
 	    pthread_join(tid2, NULL);
     }
@@ -109,11 +99,9 @@ int cmp(const void *lhs, const void *rhs) {
 }
 
 int check(int arr[], int size) {
-	int *brr = (int *)malloc(sizeof(int) * size);
-	for(int i = 0; i < size; i++) brr[i] = arr[i];
-    qsort(brr, size, sizeof(int), cmp);
+    qsort(B, size, sizeof(int), cmp);
 	for(int i = 0; i < size; i++) {
-		if(arr[i] != brr[i]) return 0;
+		if(arr[i] != B[i]) return 0;
 	}
 	return 1;
 }
@@ -124,18 +112,20 @@ void test(int A[], int size) {
 	for(int i = 0; i < size; i++) {
 		A[i] = rand();
 	}
-	
+	memcpy(A, B, sizeof(int) * n);
+
 	struct atom p;
 	p.l = 0;
 	p.r = n;
     long start_timer = get_current_time();
-#ifdef THREAD	
+#ifdef MULTI_THREAD	
 	pthread_t tid;
-    pthread_create(&tid, NULL, my_merge_sort, (void*)&p);
+	if(pthread_create(&tid, NULL, my_merge_sort, (void*)&p) != 0) perror("");
+	else thread_num++;
 	pthread_join(tid, NULL);
 #endif
 
-#ifdef NO_THREAD
+#ifdef SINGLE_THREAD
 	my_merge_sort((void *)&p);
 #endif
     long end_timer = get_current_time();
@@ -147,7 +137,7 @@ void test(int A[], int size) {
 	*/
 	printf("return %s\n", check(A, n) ? "true" : "false");
     printf("time %ldms\n", end_timer - start_timer);
-	printf("thread %d\n", thread_num);
+	printf("thread %d\n", thread_num / 2 + 1);
 	pthread_exit(NULL);
 }
 
