@@ -22,7 +22,7 @@ thread is the max number of thread.
 
 ### Output
 
-![Snipaste_2019-04-02_15-04-55](C:\Users\sttee\Desktop\multi thread mergesort\Snipaste_2019-04-02_15-04-55.png)
+
 
 size is the length of array
 
