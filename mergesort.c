@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #define maxn 10000010
-#define THREAD_NUM 8
+#define THREAD_NUM 16
 // #define NO_THREAD
 #define THREAD
 #define DEBUG
@@ -81,26 +81,22 @@ void* my_merge_sort(void *node) {
 #endif
 	
 #ifdef THREAD
-	if((n / (r - l) * 4 >= THREAD_NUM)) {
+	if((thread_num * 4 > THREAD_NUM)) {
 		my_merge_sort((void *)&left);
         my_merge_sort((void *)&right);
     } else {
+		thread_num = n / (r - l) * 2;
         pthread_t tid1, tid2;
         if(pthread_create(&tid1, NULL, my_merge_sort, ((void*)(&left))) != 0) {
             fprintf(stderr, "thread create error\n");
             perror("");
-            // exit(-1);
-        } else {
-            thread_num++;
-        }
-        if(pthread_create(&tid2, NULL, my_merge_sort, ((void*)(&right))) != 0) {
-            //fprintf(stderr, "thread create error\n");
-            //perror("");
-            // exit(-1);
-        }else {
-            thread_num++;
-        }
-	    pthread_join(tid1, NULL);
+        }         
+		if(pthread_create(&tid2, NULL, my_merge_sort, ((void*)(&right))) != 0) {
+            fprintf(stderr, "thread create error\n");
+			perror("");
+            exit(-1);
+        }	
+		pthread_join(tid1, NULL);
 	    pthread_join(tid2, NULL);
     }
 #endif
@@ -151,6 +147,7 @@ void test(int A[], int size) {
 	*/
 	printf("return %s\n", check(A, n) ? "true" : "false");
     printf("time %ldms\n", end_timer - start_timer);
+	printf("thread %d\n", thread_num);
 	pthread_exit(NULL);
 }
 
