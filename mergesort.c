@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #define maxn 1000010
-
+#define THREAD_NUM 1024
 // #define NO_THREAD
 #define THREAD
 #define DEBUG
@@ -51,7 +51,6 @@ void* my_merge_sort(void *node) {
 	// fprintf(stderr, "%d %d\n", l, r);
 	fprintf(stderr, "thread num %d\n", thread_num);
 #endif
-	if(r - l <= 5) qsort(A, r - l, sizeof(int), cmp);
 	if(r - l <= 1) return NULL;
 
 	pthread_t tid1, tid2;
@@ -69,25 +68,28 @@ void* my_merge_sort(void *node) {
 #endif
 	
 #ifdef THREAD
+	if(thread_num) {
+		
+	} 
 	int ret;
 	if(ret = pthread_create(&tid1, NULL, my_merge_sort, ((void*)(&left))) != 0) {
 		fprintf(stderr, "thread create error\n");
 		perror("");
 		// exit(-1);
-	} 
-	if(ret = pthread_create(&tid2, NULL, my_merge_sort, ((void*)(&right))) != 0) {
-		fprintf(stderr, "thread create error\n");
-		perror("");
-		// exit(-1);
+	} else {
+		thread_num++;
 	}
-	thread_num += 2;
+	if(ret = pthread_create(&tid2, NULL, my_merge_sort, ((void*)(&right))) != 0) {
+		//fprintf(stderr, "thread create error\n");
+		//perror("");
+		// exit(-1);
+	}else {
+		thread_num++;
+	}
 	pthread_join(tid1, NULL);
 	pthread_join(tid2, NULL);
 #endif
 	merge(l, r);
-#ifdef THREAD
-	pthread_detach(pthread_self());
-#endif
 }
 
 int cmp(const void *lhs, const void *rhs) {
@@ -134,9 +136,6 @@ void test(int A[], int size) {
 }
 
 int main() {
-#ifdef DEBUG
-	printf("hello\n");
-#endif
 	test(A, 1000000);
 	return 0;
 }
