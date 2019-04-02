@@ -5,13 +5,13 @@
 #include <stdlib.h>
 #include <pthread.h>
 #define maxn 100000010
-#define MULTI_THREAD_NUM 16
 // #define SINGLE_THREAD
 #define MULTI_THREAD
 #ifndef DEBUG
 #define DEBUG
 #endif
 
+int max_thread_num;
 int A[maxn];
 int temp[maxn];
 int B[maxn];
@@ -67,19 +67,20 @@ void* my_merge_sort(void *node) {
 #endif
 	
 #ifdef MULTI_THREAD
-	if ((((thread_num + 1) << 1) > MULTI_THREAD_NUM)) {
+	if ((((thread_num + 1) >> 1) >= max_thread_num)) {
 		my_merge_sort((void *)&left);
         my_merge_sort((void *)&right);
     } else {
         pthread_t tid1, tid2;
+		thread_num += 2;
         if (pthread_create(&tid1, NULL, my_merge_sort, ((void*)(&left))) != 0) {
             fprintf(stderr, "thread create error\n");
             perror("");
-		} else thread_num++;    
+		}    
 		if(pthread_create(&tid2, NULL, my_merge_sort, ((void*)(&right))) != 0) {
             fprintf(stderr, "thread create error\n");
 			perror("");
-		} else thread_num++;
+		}
 		pthread_join(tid1, NULL);
 	    pthread_join(tid2, NULL);
     }
@@ -128,13 +129,20 @@ void test(int A[], int size) {
 	}
 	printf("\n");
 	*/
-	printf("return %s\n", check(A, n) ? "true" : "false");
-    printf("time %ldms\n", end_timer - start_timer);
-	printf("thread %d\n", thread_num / 2 + 1);
+	printf("size of array: %d\n", n);
+	printf("number of thread: %d\n", thread_num / 2 + 1);
+	printf("result %s\n", check(A, n) ? "true" : "false");
+    printf("time: %ldms\n", end_timer - start_timer);
 	pthread_exit(NULL);
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+	if(argc != 3) {
+		printf("Command format $ ./mergesort <size_of_array> <thread_num>\n");
+		return 0;
+	}
+	int size = atoi(argv[1]);
+	max_thread_num = atoi(argv[2]);
 	test(A, 100000000);
 	return 0;
 }
